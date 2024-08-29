@@ -29,7 +29,7 @@ class EmployeeAdapter :
             tvDateOfBirth.text = formattedDate
             tvAddress.text = employee.address
         }
-        holder.itemView.setOnClickListener{
+        holder.binding.ivEmployeeDelete.setOnClickListener{
             onItemClick?.invoke(position)
         }
     }

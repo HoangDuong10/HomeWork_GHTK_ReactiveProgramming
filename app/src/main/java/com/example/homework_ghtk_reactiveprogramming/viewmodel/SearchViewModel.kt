@@ -35,11 +35,14 @@ class SearchViewModel  : ViewModel() {
                                 time = employee.dateOfBirth
                             }.get(Calendar.YEAR) == selectedBirthYear
                     val matchesAddress = selectedAddress.isBlank() ||
-                            employee.address.contains(selectedAddress, ignoreCase = true)
+                            employee.address.contains(selectedAddress, ignoreCase = true) ||
+                            selectedAddress == "Quê quán"
+
                     matchesName && matchesBirthYear && matchesAddress
-                }.distinctBy { employee ->
-                    employee.name to employee.dateOfBirth to employee.address
                 }
+//                    .distinctBy { employee ->
+//                        employee.name to employee.dateOfBirth to employee.address
+//                    }
             }.collect { filteredEmployees ->
                 _employees.value = filteredEmployees
             }
@@ -88,14 +91,18 @@ class SearchViewModel  : ViewModel() {
         return listEmployee
             .map { it.address }
             .distinct()
+            .plus("Quê quán")
     }
+
 
     fun getBirthYears(): List<Int> {
         return listEmployee
-            .map { Calendar.getInstance().apply { time = it.dateOfBirth }.get(Calendar.YEAR) } // Lấy năm từ ngày sinh
+            .map { Calendar.getInstance().apply { time = it.dateOfBirth }.get(Calendar.YEAR) }
             .distinct()
             .sorted()
+
     }
+
 
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery

@@ -113,7 +113,17 @@
         app:layout_constraintBottom_toTopOf="@+id/btnAddEmployee"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/llFilterAddress" />
-
+    <TextView
+        android:id="@+id/tvInfo"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Không có thông tin nhân viên"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"/>
     <ImageButton
         android:id="@+id/btnAddEmployee"
         android:layout_width="50dp"

@@ -2,6 +2,8 @@ package com.example.homework_ghtk_reactiveprogramming
 
 
 import android.os.Bundle
+import android.view.View
+import android.view.View.OnClickListener
 
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -9,7 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,6 +22,9 @@ import com.example.homework_ghtk_reactiveprogramming.databinding.ActivityMainBin
 import com.example.homework_ghtk_reactiveprogramming.dialog.AddEmployeeDialogFragment
 import com.example.homework_ghtk_reactiveprogramming.viewmodel.SearchViewModel
 import com.example.homework_ghtk_reactiveprogramming.dialog.DialogHandler
+import com.example.homework_ghtk_reactiveprogramming.model.Employee
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -41,11 +48,43 @@ class MainActivity : AppCompatActivity() {
         binding.rcvEmployee.addItemDecoration(dividerItemDecoration)
         binding.rcvEmployee.adapter = employeeAdapter
 
+        lifecycleScope.launch {
+            viewModel.employees
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .onEach { employees ->
+                    employeeAdapter.submitList(employees)
+                    showData(employees)
+                }
+                .launchIn(this)
+        }
+        employeeAdapter.onItemClick= { position ->
+            showDeleteConfirmationDialog(position)
+        }
+        onClickListener()
+    }
 
+
+
+    private fun showDeleteConfirmationDialog(position:Int) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Xác nhận xóa")
+        builder.setMessage("Bạn có chắc chắn muốn xóa không?")
+
+        builder.setPositiveButton("Xóa") { dialog, _ ->
+            viewModel.deleteEmployee(position)
+            dialog.dismiss()
+        }
+        builder.setNegativeButton("Hủy") { dialog, _ ->
+            dialog.dismiss()
+        }
+        val dialog = builder.create()
+        dialog.show()
+    }
+    private fun onClickListener(){
         binding.tvDateOfBirth.setOnClickListener {
             DialogHandler.createSingleItemDialog(
                 this@MainActivity,
-                viewModel.getBirthYears(),
+                viewModel.getBirthYears()!!,
                 "Năm sinh"
             ) { selectedYear ->
                 binding.tvDateOfBirth.text = selectedYear
@@ -66,45 +105,26 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-
-        lifecycleScope.launch {
-            viewModel.employees.collect { employees ->
-                employeeAdapter.submitList(employees)
-            }
-        }
         binding.edtSearchName.addTextChangedListener { text ->
             viewModel.onSearchQueryChanged(text.toString())
         }
-        onClickAddEmployee()
-        employeeAdapter.onItemClick= { position ->
-            showDeleteConfirmationDialog(position)
-        }
-    }
 
-    private fun onClickAddEmployee() {
+        binding.btnAddEmployee.setOnClickListener {
+            val dialog = AddEmployeeDialogFragment()
+            dialog.show(supportFragmentManager, "AddEmployeeDialog")
+        }
+
         binding.btnAddEmployee.setOnClickListener {
             val dialog = AddEmployeeDialogFragment()
             dialog.show(supportFragmentManager, "AddEmployeeDialog")
         }
     }
-
-    private fun showDeleteConfirmationDialog(position:Int) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Xác nhận xóa")
-        builder.setMessage("Bạn có chắc chắn muốn xóa không?")
-
-        builder.setPositiveButton("Xóa") { dialog, _ ->
-            viewModel.deleteEmployee(position)
-            dialog.dismiss()
+    private fun showData(listEmployee : List<Employee>){
+        if (listEmployee.isEmpty()){
+            binding.tvInfo.visibility = View.VISIBLE
+        }else{
+            binding.tvInfo.visibility = View.GONE
         }
-
-        builder.setNegativeButton("Hủy") { dialog, _ ->
-            // Xử lý hủy
-            dialog.dismiss()
-        }
-
-        val dialog = builder.create()
-        dialog.show()
     }
 
 }
